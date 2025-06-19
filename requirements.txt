@@ -4,3 +4,4 @@ sentencepiece
 pdfplumber
 python-docx
 torch
+torch==2.2.2
