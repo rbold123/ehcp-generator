@@ -1,3 +1,11 @@
+---
+title: EHCP Report Generator
+sdk: streamlit
+sdk_version: 1.33.0
+app_file: ehcp_free_generator.py
+---
+
+
 # EHCP Report Generator
 
 This is a simple Streamlit app that generates summaries from EHCP documents (PDF or DOCX) using a pre-trained BART model.
