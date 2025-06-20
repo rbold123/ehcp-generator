@@ -1,0 +1,7 @@
+# .streamlit/config.toml
+[server]
+headless = true
+# Do NOT set server.port here; use the default 8501 (required by Spaces):contentReference[oaicite:2]{index=2}
+
+[browser]
+gatherUsageStats = false
