@@ -24,3 +24,7 @@ streamlit run ehcp_free_generator.py
 
 ## Deployment
 You can deploy this on Hugging Face Spaces or Streamlit Cloud.
+env:
+  - STREAMLIT_HOME=/tmp/.streamlit
+  - HF_HOME=/tmp/huggingface
+
