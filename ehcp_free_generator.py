@@ -1,13 +1,11 @@
 import streamlit as st
-from transformers import BartTokenizer, BartForConditionalGeneration
 from docx import Document
 import pdfplumber
+from transformers import BartTokenizer, BartForConditionalGeneration
+import torch
+import os
 
-# Streamlit setup
-st.set_page_config(page_title="EHCP Generator", layout="wide")
-st.title("📄 EHCP Report Generator")
-
-# Load model
+# Load model and tokenizer
 @st.cache_resource
 def load_model():
     model = BartForConditionalGeneration.from_pretrained("facebook/bart-base")
@@ -16,30 +14,32 @@ def load_model():
 
 model, tokenizer = load_model()
 
-# --- Input Fields ---
-student_name = st.text_input("Student Name")
-year_group = st.text_input("Year Group")
-additional_info = st.text_area("Additional Information (Optional)")
+# Streamlit UI
+st.title("EHCP Report Generator")
 
-# --- Multi-File Upload ---
-uploaded_files = st.file_uploader("Upload Supporting Documents (.pdf or .docx)", type=["pdf", "docx"], accept_multiple_files=True)
-extracted_texts = []
+uploaded_files = st.file_uploader("Upload one or more EHCP documents (PDF or DOCX)", type=["pdf", "docx"], accept_multiple_files=True)
+
+def extract_text(file):
+    text = ""
+    if file.name.endswith(".pdf"):
+        with pdfplumber.open(file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+    elif file.name.endswith(".docx"):
+        doc = Document(file)
+        for para in doc.paragraphs:
+            text += para.text + "\n"
+    return text.strip()
 
 if uploaded_files:
-    for uploaded_file in uploaded_files:
-        file_ext = uploaded_file.name.split(".")[-1].lower()
+    for file in uploaded_files:
+        st.subheader(f"Processing: {file.name}")
+        extracted_text = extract_text(file)
 
-        if file_ext == "docx":
-            doc = Document(uploaded_file)
-            file_text = "\n".join([para.text for para in doc.paragraphs])
+        inputs = tokenizer.encode(extracted_text, return_tensors="pt", max_length=1024, truncation=True)
+        summary_ids = model.generate(inputs, max_length=512, min_length=100, length_penalty=2.0, num_beams=4, early_stopping=True)
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
-        elif file_ext == "pdf":
-            with pdfplumber.open(uploaded_file) as pdf:
-                file_text = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
-
-        extracted_texts.append(f"--- Extracted from: {uploaded_file.name} ---\n{file_text}")
-
-    combined_text = "\n\n".join(extracted_texts)
-
-    st.subheader("🧾 Combined Extracted Text")
-    
+        st.text_area(f"Summary of {file.name}:", summary, height=300)
