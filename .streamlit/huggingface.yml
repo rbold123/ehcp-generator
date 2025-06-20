@@ -1,0 +1,10 @@
+title: EHCP Generator
+sdk: streamlit
+sdk_version: 1.33.0
+app_file: ehcp_free_generator.py
+python_version: 3.9
+env:
+  - STREAMLIT_HOME=/tmp/.streamlit
+  - HF_HOME=/tmp/huggingface
+  - TRANSFORMERS_CACHE=/tmp/transformers
+  - TORCH_HOME=/tmp/torch
